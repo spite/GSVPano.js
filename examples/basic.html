@@ -1,0 +1,63 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head>
+		<title>GSVPano.js Basic Usage</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	</head>
+	<body>
+	
+		<h1>GSVPano.js Basic Usage</h1>
+		<div id="messageDiv" ></div>
+		<div id="errorDiv" ></div>
+		
+	<script>
+	
+	var messageDiv = document.getElementById( 'messageDiv' );
+	var errorDiv = document.getElementById( 'errorDiv' );
+	
+	function showError( message ) {
+		errorDiv.innerHTML = message;
+	}
+	
+	function showMessage( message ) {
+		messageDiv.innerHTML += message;
+	}
+		
+	window.addEventListener( 'load', function() {
+	
+		showMessage( 'Starting...<br/>' );
+		
+		loader = new GSVPANO.PanoLoader( {
+			zoom: 1
+		} );
+		
+		loader.onSizeChange = function() { 
+			showMessage( 'Size changed' );
+		};
+		
+		loader.onProgress = function( p ) {
+			if( p == 0 ) showMessage( 'Load started' );
+			else if( p == 100 ) showMessage( '<br/>Load finished.<br/>' );
+			else showMessage( '.' );
+		};
+		
+		loader.onError = function( message ) {
+			showMessage( 'Error: ' + message );
+		};
+		
+		loader.onPanoramaLoad = function() {
+			
+			document.body.appendChild( this.canvas );
+			showMessage( 'Panorama loaded, street view data ' + this.copyright + '.<br/>' );
+			
+		};
+
+		loader.load( new google.maps.LatLng( 42.216188,-75.72657859999998 ) );
+		
+	} );
+	
+	</script>
+	<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+	<script src="../build/GSVPano.min.js"></script>
+	</body>
+</html>
