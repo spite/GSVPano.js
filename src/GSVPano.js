@@ -4,8 +4,8 @@ GSVPANO.PanoLoader = function (parameters) {
 	'use strict';
 
 	var _parameters = parameters || {},
-		_zoom = parameters.zoom || 1,
 		_location,
+		_zoom,
 		_panoId,
 		_panoClient = new google.maps.StreetViewService(),
 		_count = 0,
@@ -16,7 +16,7 @@ GSVPANO.PanoLoader = function (parameters) {
 		copyright = '',
 		onSizeChange = null,
 		onPanoramaLoad = null;
-
+		
 	this.setProgress = function (p) {
 	
 		if (this.onProgress) {
@@ -41,7 +41,8 @@ GSVPANO.PanoLoader = function (parameters) {
 			h = (416 * Math.pow(2, _zoom - 1));
 		_canvas.width = w;
 		_canvas.height = h;
-		
+		_ctx.translate( _canvas.width, 0);
+		_ctx.scale(-1, 1);
 	};
 
 	this.composeFromTile = function (x, y, texture) {
@@ -95,23 +96,30 @@ GSVPANO.PanoLoader = function (parameters) {
 	this.load = function (location) {
 	
 		console.log('Load for', location);
-		this.location = location;
 		var self = this;
 		_panoClient.getPanoramaByLocation(location, 50, function (result, status) {
 			if (status === google.maps.StreetViewStatus.OK) {
+				if( self.onPanoramaData ) self.onPanoramaData( result );
 				var h = google.maps.geometry.spherical.computeHeading(location, result.location.latLng);
 				rotation = (result.tiles.centerHeading - h) * Math.PI / 180.0;
 				copyright = result.copyright;
 				self.copyright = result.copyright;
 				_panoId = result.location.pano;
+				self.location = location;
 				self.composePanorama();
 			} else {
+				if( self.onNoPanoramaData ) self.onNoPanoramaData( status );
 				self.throwError('Could not retrieve panorama for the following reason: ' + status);
 			}
 		});
 		
 	};
 	
-	this.adaptTextureToZoom();
-	
+	this.setZoom = function( z ) {
+		_zoom = z;
+		this.adaptTextureToZoom();
+	};
+
+	this.setZoom( _parameters.zoom || 1 );
+
 };

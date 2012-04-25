@@ -1,0 +1,605 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>WebGL Google Street Viewer</title>
+		<link rel="stylesheet" href="buttons.css" type="text/css" media="screen" title="no title" charset="utf-8">
+		<style type="text/css">
+	*{ 
+		margin: 0; 
+		padding: 0; 
+		//box-sizing: border-box;
+	}
+	html {
+		height: 100%;
+	}
+	body {
+		margin: 0;
+		padding: 0;
+		background: #000000;
+		color: #ffffff;
+		font-family: sans-serif;
+		font-size: 13px;
+		line-height: 20px;
+		height: 100%;
+		overflow: hidden
+	}
+	a {
+		color: #fff;
+		text-decoration: none;
+		border-bottom: 1px dotted #fff;
+	}
+	a:hover {
+		border-bottom: 1px solid #fff
+	}
+	p{
+		margin-bottom: 1em;
+	}
+	.hide{
+		opacity: 1;
+		-webkit-transition: opacity .5s ease-out;
+		-moz-transition: opacity .5s ease-out;
+		-o-transition: opacity .5s ease-out;
+	}
+	#title {
+		position: absolute;
+		top: 20px;
+		width: 300px;
+		left: 20px;
+		background-color: rgba(0,0,0,0.2);
+		border-radius: 3px;
+		padding: 10px;
+		overflow: auto;
+	}
+	#options{
+		position: absolute;
+		top: 20px;
+		width: 300px;
+		right: 20px;
+		background-color: rgba(0,0,0,0.2);
+		border-radius: 3px;
+		padding: 10px;
+		overflow: hidden;
+	}
+	h1{ 
+		font: 20px Georgia; 
+		margin: 0 0 1em 0;
+	}
+	#toggle{ 
+		position: absolute; 
+		right: 10px; 
+		top: 10px; 
+		text-align: right 
+	}
+	#map{ 
+		width: 300px; 
+		height: 200px; 
+		z-index: 100; 
+		-webkit-box-shadow: 0px 0px 3px 3px rgba( 73, 73, 73, .2 );
+		-moz-box-shadow: 0px 0px 3px 3px rgba( 73, 73, 73, .2 );
+		-o-box-shadow: 0px 0px 3px 3px rgba( 73, 73, 73, .2 );
+		box-shadow: 0px 0px 3px 3px rgba( 73, 73, 73, .2 );	
+	}
+	#pano{ 
+		position: absolute; 
+		left: 0; 
+		top: 0; 
+		right: 0; 
+		bottom: 0 
+	}
+	.button{ 
+		font-size: 11px 
+	}
+	#pano_form button{
+		float: left 
+	}
+	#map_form input{ 
+		background: rgba( 255,255,255,.5 ) url( search.png ) no-repeat 5px 50%; 
+		padding-left: 25px; 
+		width: 185px; 
+		height: 26px; 
+		border: 1px solid #444; 
+		margin-top: 2px
+	}
+	#map_form input:focus{ 
+		background-color: rgba( 255,255,255,.85 ); 
+		border: 1px solid black 
+	}
+	#map_form button{ 
+		width: 80px; 
+		float: right 
+	}
+	#preloader{
+		pointer-events: none;
+		width: 306px;
+		height: 36px;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		margin-left: -153px;
+		margin-top: -18px;
+		background-color: rgba(255,255,255,0.8);
+		border-radius: 3px;
+		-webkit-transition: opacity 1s ease-out;
+		-moz-transition: opacity 1s ease-out;
+		-o-transition: opacity 1s ease-out;
+	}
+	#bar{
+		pointer-events: none;
+		height: 30px;
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		margin-left: -150px;
+		margin-top: -15px;
+		background-color: rgba(0,0,0,0.8);
+		border-radius: 3px;
+	}
+	.block{ 
+		position: relative;
+		line-height: 2.5em;
+		padding: 0;
+		margin: 5px 0 0 0;
+		display: block;
+	}
+	#error, #message{ line-height: 1.4em; margin-bottom: .5em }
+	.test{
+		position: absolute; left: 0; top: 0; right: 0; bottom: 0; width: 100%; height: 100%; background-color: red }
+	}
+	</style>
+	</head>
+	<body>
+
+		<div id="pano" ></div>
+		
+		<div id="title" class="hide">
+			<h1>Google Street Viewer</b> | <a href="http://twitter.com/thespite" rel="external">@thespite</a></h1>
+			<p>A google street panorama viewer with WebGL using <a href="https://github.com/spite/GSVPano.js" rel="external">GSVPano.js</a> and <a href="https://github.com/mrdoob/three.js" rel="external">three.js</a>. Uses Geolocation API, Fullscreen API and Pointer Lock API if available.</p>
+			<p>You'll need <a href="http://www.google.com/chrome" rel="external">Chrome</a>, <a href="http://nightly.mozilla.org/" rel="external">Firefox 8+</a>, or another browser that supports <a href="http://enable-cors.org/" rel="external">CORS</a> WebGL textures.</p>
+			<g:plusone width="280"></g:plusone>
+			<script type="text/javascript">
+			  (function() {
+				var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+				po.src = 'https://apis.google.com/js/plusone.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+			  })();
+			</script><br/>
+			<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="thespite">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+			<p><a href="http://clicktorelease.com/+" rel="external">Find me on google+</a> | <a href="http://clicktorelease.com/@" rel="external">Follow me on twitter</a></p>
+		</div>
+		
+		<div id="options" class="hide">
+
+			<h1>How to use</h1>
+			
+			<p><b>Click and drag</b> the panorama<br/>viewer. <b>Mouse wheel</b> to zoom in<br/>and out. Use the controls on the right to<br/>look for addresses and change image quality.</p>
+			
+			<a href="https://github.com/spite/GSVPano.js" rel="external" ><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/camo.github.com/30f550e0d38ceb6ef5b81500c64d970b7fb0f028/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub"></a>
+			
+			<div id="map"></div>
+
+			<div class="block">
+				<form id="map_form">
+					<input type="text" name="address" id="address" />
+					<button type="submit" class="primary button" id="searchButton" >Search</button>
+				</form>
+			</div>
+			
+			<div class="block">
+				<button type="submit" id="myLocationButton" style="width: 148px" class="button">Use my location</button>
+				<button type="submit" id="fullscreenButton" style="width: 148px" class="button">Go fullscreen</button>
+			</div>
+			
+			<div class="block">
+				<b>Quality</b>
+				<form id="pano_form" style="position: absolute; right: 0; top: 0">
+					<button name="scale" style="width: 4em" id="scale1" class="left button">Low</button>
+					<button name="scale" style="width: 6em" id="scale2" class="middle button">Medium</button>
+					<button name="scale" style="width: 4em" id="scale3" class="middle button">High</button>
+					<button name="scale" style="width: 7em" id="scale4" class="right button">Massive</button>
+				</form>
+			</div>
+			
+			<div class="block" id="status" >
+				<div id="message" ></div>
+				<div id="error" ></div>
+			</div>
+			
+		</div>
+		
+		<div id="preloader" >
+			<div id="bar" ></div>
+		</div>
+
+		<script type="text/javascript" src="../../src/GSVPano.js"></script>
+		<script type="text/javascript" src="js/Tween.js"></script>
+		<script type="text/javascript" src="js/Three.js"></script>
+		<script type="text/javascript" src="js/RequestAnimationFrame.js"></script>
+		<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+		<script type="text/javascript">
+
+		TWEEN.start();
+		
+		var map, canvas, ctx;
+		var marker = null;
+		var container, mesh, renderer, camera;
+		var fov = 70;
+		var lat = 0, lon = 0;
+		var zoom;
+		var geocoder;
+		var error;
+		var message;
+		var activeLocation = null;
+		var preloader = document.getElementById( 'preloader' );
+		var bar = document.getElementById( 'bar' );
+		var scaleButtons = [];
+		var cd = new Date();
+		var time = cd.getTime();
+		var position = { x: 0, y: 0 };
+		var loader = new GSVPANO.PanoLoader();
+		
+		function setProgress( progress ) {
+			bar.style.width = ( preloader.clientWidth - 6 ) * progress / 100 + 'px';
+		}
+		
+		function showProgress( show ) {
+			preloader.style.opacity = ( show == true )?1:0;
+			preloader.style.display = ( show == true )?'block':'none';
+		}
+		
+		function setZoom( z ) {
+			zoom = z;
+			loader.setZoom( z );
+			for( var j = 0; j < scaleButtons.length; j++ ) {
+				scaleButtons[ j ].className = scaleButtons[ j ].className.replace( 'active', '' );
+				if( z == ( j + 1 ) ) scaleButtons[ j ].className += ' active';
+			}
+			if( activeLocation ) loader.load( activeLocation );
+		}
+		
+		function geoSuccess( position ) {
+		
+			var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
+			map.panTo( currentLocation );
+			addMarker( currentLocation ); // move to position (thanks @theCole!)
+
+		}
+		
+		function geoError( message ) {
+			showError( message );
+		}
+		
+		function initialize() {
+			
+			var locations = [
+				{ lat: 51.50700703827454, lng: -0.12791916931155356 },
+				{ lat: 32.6144404, lng: -108.9852017 },
+				{ lat: 39.36382677360614, lng: 8.431220278759724 },
+				{ lat: 59.30571937680209, lng: 4.879402148657164 },
+				{ lat: 28.240385123352873, lng: -16.629988706884774 },
+				{ lat: 50.09072314148827, lng: 14.393133454556278 },
+				{ lat: 41.413416092316275, lng: 2.1531126527786455 },
+				{ lat: 35.69143938066447, lng: 139.695139627539 },
+				{ lat: 35.67120372775569, lng: 139.77167914398797 },
+				{ lat: 54.552083679428065, lng: -3.297380963134742 }
+			];
+			
+			var pos;
+			if( window.location.hash ) {
+				parts = window.location.hash.substr( 1 ).split( ',' );
+				pos = { lat: parts[ 0 ], lng: parts[ 1 ] };
+			} else {
+				pos = locations[ Math.floor( Math.random() * locations.length ) ];
+			}
+			var myLatlng = new google.maps.LatLng( pos.lat, pos.lng );
+				
+			var links = document.querySelectorAll( 'a[rel=external]' );
+			for( var j = 0; j < links.length; j++ ) {
+				var a = links[ j ];
+				a.addEventListener( 'click', function( e ) {
+					window.open( this.href, '_blank' );
+					e.preventDefault();
+				}, false );
+			}
+			
+			for( var j = 1; j < 5; j++ ) {
+				var el = document.getElementById( 'scale' + j );
+				scaleButtons.push( el );
+				( function( z ) { el.addEventListener( 'click', function( e ) {
+					e.preventDefault();
+					setZoom( z ); 
+				}, false ); } )( j );
+			}
+			
+			canvas = document.createElement( 'canvas' );
+			ctx = canvas.getContext( '2d' );
+			
+			container = document.getElementById( 'pano' );
+			
+			camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 1, 1100 );
+			camera.target = new THREE.Vector3( 0, 0, 0 );
+			
+			scene = new THREE.Scene();
+			scene.add( camera );
+
+			try {
+				var isWebGL = !!window.WebGLRenderingContext && !!document.createElement('canvas').getContext('experimental-webgl');
+			}catch(e){
+				
+			}
+			
+			renderer = new THREE.WebGLRenderer();
+			renderer.autoClearColor = false;
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+			var faces = 50;
+			mesh = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ), new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'placeholder.jpg' ) } ) );
+			mesh.doubleSided = true;
+			scene.add( mesh );
+			
+			container.appendChild( renderer.domElement );
+			
+			var myOptions = {
+				zoom: 14,
+				center: myLatlng,
+				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				streetViewControl: false
+			}
+			map = new google.maps.Map(document.getElementById("map"), myOptions);
+			google.maps.event.addListener(map, 'click', function(event) {
+				addMarker(event.latLng);
+			});
+			
+			geocoder = new google.maps.Geocoder();
+			
+			container.addEventListener( 'mousedown', onContainerMouseDown, false );
+			container.addEventListener( 'mousemove', onContainerMouseMove, false );
+			container.addEventListener( 'mouseup', onContainerMouseUp, false );
+			container.addEventListener( 'mousewheel', onContainerMouseWheel, false );
+			container.addEventListener( 'DOMMouseScroll', onContainerMouseWheel, false); 
+			window.addEventListener( 'resize', onWindowResized, false );
+			
+			onWindowResized( null );
+			
+			var el = document.getElementById( 'myLocationButton' );
+			el.addEventListener( 'click', function( event ) {
+				event.preventDefault();
+				navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
+			}, false );
+			
+			navigator.pointer = navigator.pointer || navigator.webkitPointer || navigator.mozPointer;  
+
+			var el = document.getElementById( 'fullscreenButton' );
+			if( el ) {
+				el.addEventListener( 'click', function( e ) {
+					container.addEventListener( 'webkitfullscreenchange', function(e) {
+						if( navigator.pointer ) {
+							navigator.pointer.lock( container );
+						}
+					}, false );
+					document.addEventListener( 'mozfullscreenchange', function(e) {
+						if (document.mozFullScreen && document.mozFullScreenElement === container && container.mozRequestPointerLock) {
+							container.mozRequestPointerLock();
+						}
+					}, false );
+					if( container.webkitRequestFullScreen ) container.webkitRequestFullScreen();
+					if( container.mozRequestFullScreen ) container.mozRequestFullScreen();
+					e.preventDefault();
+				}, false );
+			}
+			
+			el = document.getElementById( 'searchButton' );
+			el.addEventListener( 'click', function( event ) {
+				event.preventDefault();
+				findAddress( document.getElementById("address").value );
+			}, false );
+			
+			errorDiv = document.getElementById( 'error' );
+			messageDiv = document.getElementById( 'message' );
+			
+			showMessage( 'Ready. <b>Click a street in the map.</b>' );
+			
+			loader.onProgress = function( p ) {
+				setProgress( p );
+			};
+			
+			loader.onPanoramaData = function( result ) {
+				showProgress( true );
+				showMessage( 'Panorama OK. Loading and composing tiles...' );
+			}
+			
+			loader.onNoPanoramaData = function( status ) {
+				showError("Could not retrieve panorama for the following reason: " + status);
+			}
+			
+			loader.onPanoramaLoad = function() {
+				activeLocation = this.location;
+				mesh.material.map = new THREE.Texture( this.canvas ); 
+				mesh.material.map.needsUpdate = true;
+				showMessage( 'Panorama tiles loaded.<br/>The images are ' + this.copyright );
+				showProgress( false );
+			};
+
+			setZoom( 3 );
+			addMarker( myLatlng ); // initial position (thanks @mrdoob!)
+			animate();
+		}
+		
+		window.addEventListener( 'load', initialize, false );
+
+		function findAddress( address ) {
+		
+			showMessage( 'Getting coordinates...' );
+			geocoder.geocode( { 'address': address}, function(results, status) {
+				if (status == google.maps.GeocoderStatus.OK) {
+					map.setCenter(results[0].geometry.location);
+					showMessage( 'Address found.' );
+					addMarker( results[0].geometry.location ); // move to position (thanks @jocabola!)
+				} else {
+					showError("Geocode was not successful for the following reason: " + status);
+					showProgress( false );
+				}
+			});
+		}
+		
+		function showError( message ) {
+			errorDiv.innerHTML = message;
+		}
+		
+		function showMessage( message ) {
+			showError('');
+			messageDiv.innerHTML = message;
+		}
+		
+		function onWindowResized( event ) {
+			renderer.setSize( container.clientWidth, container.clientHeight );
+			camera.projectionMatrix = THREE.Matrix4.makePerspective( fov, container.clientWidth / container.clientHeight, 1, 1100 );
+		}
+		
+		var isUserInteracting = false;
+		var onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
+		
+		function onContainerMouseDown( event ) {
+			
+			event.preventDefault();
+
+			isUserInteracting = true;
+			var el = document.querySelectorAll( '.hide' );
+			for( var j = 0; j < el.length; j++ ) {
+				el[ j ].style.opacity = 0;
+				el[ j ].style.pointerEvents = 'none';
+			}
+			
+			onPointerDownPointerX = event.clientX;
+			onPointerDownPointerY = event.clientY;
+
+			onPointerDownLon = lon;
+			onPointerDownLat = lat;
+			
+		}
+		
+		function onContainerMouseMove( event ) {
+
+			event.preventDefault();
+			
+			lookSpeed = .15;
+			var f = fov / 500;
+			if( navigator.pointer && navigator.pointer.isLocked ) {
+				position.x -= event.webkitMovementX * f;
+				position.y += event.webkitMovementY * f;
+			} else if ( document.mozPointerLockElement == container ){
+				if( Math.abs( event.mozMovementX ) < 100 || Math.abs( event.mozMovementY ) < 100 ) { 
+					position.x += event.mozMovementX * f;
+					position.y -= event.mozMovementY * f;
+				}
+			} else {
+				if ( isUserInteracting ) {
+					var dx = ( onPointerDownPointerX - event.clientX ) * f;
+					var dy = ( event.clientY - onPointerDownPointerY ) * f;
+					position.x = dx + onPointerDownLon; // reversed dragging direction (thanks @mrdoob!)
+					position.y = dy + onPointerDownLat;
+				}
+			}
+		}
+		
+		function onContainerMouseWheel( event ) {
+			
+			event = event ? event : window.event;
+			var nfov = fov - ( event.detail ? event.detail * -5 : event.wheelDelta / 8 );
+			
+			var tween = new TWEEN
+				.Tween( window )
+				.to( { fov: nfov }, 200 )
+				.easing(TWEEN.Easing.Cubic.EaseInOut)
+				.onUpdate( function() { 
+					camera.projectionMatrix = THREE.Matrix4.makePerspective( fov, container.clientWidth / container.clientHeight, 1, 1100 );
+				} )
+				.start();
+
+		}
+
+		function update() {
+		}
+		
+		function onContainerMouseUp( event ) {
+
+			event.preventDefault();
+			isUserInteracting = false;
+			var el = document.querySelectorAll( '.hide' );
+			for( var j = 0; j < el.length; j++ ) {
+				el[ j ].style.opacity = 1;
+				el[ j ].style.pointerEvents = 'auto';
+			}
+
+		}
+		
+		function addMarker(location) {
+			if( marker ) marker.setMap( null );
+			marker = new google.maps.Marker({
+				position: location,
+				map: map
+			});
+			marker.setMap( map ); 
+			showMessage( 'Loading panorama for zoom ' + zoom + '...' );
+			loader.load( location );
+		}
+		
+		var panoramas = [];
+		var circle = null;
+		var copyright;
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+			render();
+
+		}
+
+		var ellapsedTime;
+		
+		function render() {
+
+			var cd = new Date();
+			ctime = cd.getTime();
+			
+			ellapsedTime = ( ctime - time );
+			ellapsedFactor = ellapsedTime / 16;
+
+			var olon = lon, olat = lat;
+			var s = .15 * ellapsedFactor;
+			lon = lon + ( position.x - olon ) * s;
+			lat = lat + ( position.y - olat ) * s;
+				
+			lat = Math.max( - 85, Math.min( 85, lat ) );
+			phi = ( 90 - lat ) * Math.PI / 180;
+			theta = lon * Math.PI / 180;
+
+			camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
+			camera.target.y = 500 * Math.cos( phi );
+			camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
+			camera.lookAt( camera.target );
+			
+			renderer.render( scene, camera );
+			
+			time = ctime;
+
+		}
+		
+		</script>
+				
+		<script type="text/javascript">
+
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-625393-26']);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+
+		</script>
+	
+	</body>
+</html>
