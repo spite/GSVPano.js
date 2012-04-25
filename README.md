@@ -1,12 +1,15 @@
 # GSVPano.js - Google Street View Panorama lib
 
 Library to help requesting and stitching Google Street View panoramas. 
+
 You can see it in use in a [WebGL Google Street View Panorama Viewer](http://www.clicktorelease.com/code/street).
+
 Forks, pull requests and code critiques are welcome!
 
 #### Using the code ####
 
-1. Include GSVPano.[min.]js and Google Maps API lib. 
+Include GSVPano.[min.]js and Google Maps API lib. 
+
 The lib uses google.maps.LatLng to specify the location and google.maps.StreetViewService.
 
 ```html
@@ -14,7 +17,7 @@ The lib uses google.maps.LatLng to specify the location and google.maps.StreetVi
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 ````
 
-2. The most basic code:
+Add this basic code:
 
 ```js
 // Create a PanoLoader object
