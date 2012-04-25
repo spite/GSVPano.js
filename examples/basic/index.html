@@ -4,7 +4,22 @@
 		<meta charset="utf-8">
 		<title>GSVPano.js Basic Usage</title>
 		<style>
-		*
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body {
+			font: 12px/14px tahoma, sans-serif;
+			padding: 10px;
+		}
+		h1{
+			font-size: 24px;
+			line-height: 34px;
+		}
+		canvas{
+			margin-top: 10px
+		}
 		</style>
 	</head>
 	<body>
@@ -37,11 +52,18 @@
 		loader.onSizeChange = function() { 
 			showMessage( 'Size changed' );
 		};
+		;
 		
+		loader.onPanoramaData = function( result ) {
+			showMessage( 'Panorama OK.<br/>Load started' );
+		}
+		
+		loader.onNoPanoramaData = function( status ) {
+			showError("Could not retrieve panorama for the following reason: " + status);
+		}
+	
 		loader.onProgress = function( p ) {
-			if( p == 0 ) showMessage( 'Load started' );
-			else if( p == 100 ) showMessage( '<br/>Load finished.<br/>' );
-			else showMessage( '.' );
+			showMessage( '.' );
 		};
 		
 		loader.onError = function( message ) {
@@ -50,6 +72,7 @@
 		
 		loader.onPanoramaLoad = function() {
 			
+			showMessage( ' finished.<br/>' );
 			document.body.appendChild( this.canvas );
 			showMessage( 'Panorama loaded, street view data ' + this.copyright + '.<br/>' );
 			
